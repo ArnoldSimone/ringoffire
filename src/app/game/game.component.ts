@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Game } from '../../models/game';
 import { PlayerComponent } from '../player/player.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +31,10 @@ export class GameComponent implements OnInit {
 
   ngOnInit(): void {
     this.newGame();
+    // this.firestore
+    //   .collection('items')
+    //   .valueChanges()
+    //   .subscribe((game: Game[]) => console.log('Game update:', game));
   }
 
   newGame() {
