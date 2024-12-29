@@ -35,7 +35,6 @@ export class GameComponent implements OnInit {
   currentCard: string = '';
   game?: Game;
   games$!: Observable<any[]>;
-  private gameCreated: boolean = false; // Flag zum Verhindern mehrfacher Spieleerstellung
 
   firestore: Firestore = inject(Firestore);
 
@@ -54,14 +53,8 @@ export class GameComponent implements OnInit {
   }
 
   async newGame() {
-    if (!this.gameCreated) {
-      console.log('Neues Spiel wird erstellt...');
-      this.gameCreated = true; // Markiere, dass das Spiel erstellt wurde
-      this.game = new Game();
-      await addDoc(this.getGamesRef(), this.game.toJson()); // Dokument zu Firebase hinzufügen
-    } else {
-      console.log('Spiel existiert bereits, kein neues Spiel hinzufügen');
-    }
+    this.game = new Game();
+    await addDoc(this.getGamesRef(), this.game.toJson());
   }
 
   takeCard() {
