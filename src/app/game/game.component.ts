@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, Injectable } from '@angular/core';
 import { Game } from '../../models/game';
 import { PlayerComponent } from '../player/player.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player.component';
 import { GameInfoComponent } from '../game-info/game-info.component';
+import {
+  Firestore,
+  collection,
+  collectionData,
+  addDoc,
+} from '@angular/fire/firestore';
+import { Observable, Subscription } from 'rxjs';
+import { log } from 'console';
 
 @Component({
   selector: 'app-game',
@@ -26,20 +34,34 @@ export class GameComponent implements OnInit {
   pickCardAnimation: Boolean = false;
   currentCard: string = '';
   game?: Game;
+  games$!: Observable<any[]>;
+  private gameCreated: boolean = false; // Flag zum Verhindern mehrfacher Spieleerstellung
+
+  firestore: Firestore = inject(Firestore);
 
   constructor(public dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.newGame();
-    // this.firestore
-    //   .collection('items')
-    //   .valueChanges()
-    //   .subscribe((game: Game[]) => console.log('Game update:', game));
+    this.games$ = collectionData(this.getGamesRef());
+    this.games$.subscribe((game) => {
+      console.log('Game update', game);
+    });
   }
 
-  newGame() {
-    this.game = new Game();
-    console.log(this.game);
+  getGamesRef() {
+    return collection(this.firestore, 'games');
+  }
+
+  async newGame() {
+    if (!this.gameCreated) {
+      console.log('Neues Spiel wird erstellt...');
+      this.gameCreated = true; // Markiere, dass das Spiel erstellt wurde
+      this.game = new Game();
+      await addDoc(this.getGamesRef(), this.game.toJson()); // Dokument zu Firebase hinzufügen
+    } else {
+      console.log('Spiel existiert bereits, kein neues Spiel hinzufügen');
+    }
   }
 
   takeCard() {
