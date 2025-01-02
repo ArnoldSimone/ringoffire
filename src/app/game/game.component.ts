@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, Injectable } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Game } from '../../models/game';
 import { PlayerComponent } from '../player/player.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,9 +12,13 @@ import {
   collection,
   collectionData,
   addDoc,
+  deleteDoc,
+  doc,
+  updateDoc,
+  docData,
 } from '@angular/fire/firestore';
-import { Observable, Subscription } from 'rxjs';
-import { log } from 'console';
+import { Observable } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-game',
@@ -35,17 +39,53 @@ export class GameComponent implements OnInit {
   currentCard: string = '';
   game?: Game;
   games$!: Observable<any[]>;
+  gameId: string | undefined;
 
   firestore: Firestore = inject(Firestore);
 
-  constructor(public dialog: MatDialog) {}
+  constructor(private route: ActivatedRoute, public dialog: MatDialog) {}
+
+  // ngOnInit(): void {
+  //   this.newGame();
+  //   this.route.params.subscribe((params) => {
+  //     console.log(params['id']);
+  //   });
+  //   this.games$ = collectionData(this.getGamesRef());
+  //   this.games$.subscribe((game) => {
+  //     console.log('Game update', game);
+  //   });
+  // }
 
   ngOnInit(): void {
-    this.newGame();
-    this.games$ = collectionData(this.getGamesRef());
-    this.games$.subscribe((game) => {
-      console.log('Game update', game);
+    this.route.params.subscribe((params) => {
+      this.gameId = params['gameId']; // Hole die gameId aus den Routenparametern
+      if (this.gameId) {
+        this.loadGame();
+      }
     });
+  }
+
+  loadGame() {
+    if (this.gameId) {
+      const gameDocRef = doc(this.firestore, 'games', this.gameId);
+      const gameData$ = docData(gameDocRef, { idField: 'id' }) as Observable<
+        Game & { id: string }
+      >;
+
+      gameData$.subscribe((game: Game & { id: string }) => {
+        if (game) {
+          this.game = game;
+          this.game.players = game.players;
+          this.game.stack = game.stack;
+          this.game.playedCards = game.playedCards;
+          console.log('Game loaded:', this.game);
+        } else {
+          console.error('Game not found!');
+        }
+      });
+    } else {
+      console.error('Game ID is undefined.');
+    }
   }
 
   getGamesRef() {
@@ -54,7 +94,6 @@ export class GameComponent implements OnInit {
 
   async newGame() {
     this.game = new Game();
-    await addDoc(this.getGamesRef(), this.game.toJson());
   }
 
   takeCard() {

@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+import { Game } from '../../models/game';
 
 @Component({
   selector: 'app-start-screen',
@@ -9,8 +11,16 @@ import { Router } from '@angular/router';
   styleUrl: './start-screen.component.scss',
 })
 export class StartScreenComponent {
+  firestore: Firestore = inject(Firestore);
+
   constructor(private router: Router) {}
-  newGame() {
-    this.router.navigateByUrl('/game');
+
+  async newGameStart() {
+    let game = new Game();
+    await addDoc(collection(this.firestore, 'games'), game.toJson()).then(
+      (gameInfo: any) => {
+        this.router.navigateByUrl('/game/' + gameInfo.id); // Navigieren zu umserem Spiel mit der Id
+      }
+    );
   }
 }
