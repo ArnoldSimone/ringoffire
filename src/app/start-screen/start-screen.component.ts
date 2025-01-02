@@ -24,3 +24,6 @@ export class StartScreenComponent {
     );
   }
 }
+
+// .then        wird nur einmal aufgerufen
+// .subscribe   wird mehrmals aufgerufen

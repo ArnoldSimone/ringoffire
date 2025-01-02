@@ -4,5 +4,5 @@ import { GameComponent } from './game/game.component';
 
 export const routes: Routes = [
   { path: '', component: StartScreenComponent },
-  { path: 'game/:gameid', component: GameComponent },
+  { path: 'game/:gameid', component: GameComponent }, // : sagt, das Route über eine Variable verfügt.
 ];
